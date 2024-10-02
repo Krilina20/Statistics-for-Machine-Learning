@@ -2,10 +2,10 @@
 
 
 import os
-
+import statsmodels
 
 """ First change the following directory link to where all input files do exist """
-os.chdir("D:\\Book writing\\Codes\\Chapter 2")
+# os.chdir("D:\\Book writing\\Codes\\Chapter 2")
 
 
 import numpy as np
@@ -17,9 +17,11 @@ import seaborn as sns
 #from sklearn.metrics import r2_score
 
 
-wine_quality = pd.read_csv("winequality-red.csv",sep=';')  
+wine_quality = pd.read_csv("winequality-red.csv",sep=',')  
 # Step for converting white space in columns to _ value for better handling 
 wine_quality.rename(columns=lambda x: x.replace(" ", "_"), inplace=True)
+
+print(wine_quality.columns)
 
 # Simple Linear Regression - chart
 model = sm.OLS(wine_quality['quality'],sm.add_constant(wine_quality['alcohol'])).fit()
@@ -41,7 +43,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
 
-wine_quality = pd.read_csv("winequality-red.csv",sep=';')  
+wine_quality = pd.read_csv("winequality-red.csv",sep=',')  
 wine_quality.rename(columns=lambda x: x.replace(" ", "_"), inplace=True)
 
 x_train,x_test,y_train,y_test = train_test_split(wine_quality['alcohol'],wine_quality["quality"],train_size = 0.7,random_state=42)
@@ -135,7 +137,7 @@ print ("\nTest R-squared value:",round(rsqd,4))
 # Ridge Regression
 from sklearn.linear_model import Ridge
 
-wine_quality = pd.read_csv("winequality-red.csv",sep=';')  
+wine_quality = pd.read_csv("winequality-red.csv",sep=',')  
 wine_quality.rename(columns=lambda x: x.replace(" ", "_"), inplace=True)
 
 all_colnms = ['fixed_acidity', 'volatile_acidity', 'citric_acid', 'residual_sugar',

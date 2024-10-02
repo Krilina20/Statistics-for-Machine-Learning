@@ -5,7 +5,7 @@ import os
 
 """ First change the following directory link to where all input files do exist """
 
-os.chdir("D:\\Book writing\\Codes\\Chapter 3")
+# os.chdir("D:\\Book writing\\Codes\\Chapter 3")
 
 import numpy as np
 import pandas as pd
@@ -13,17 +13,19 @@ import pandas as pd
 from sklearn.model_selection import train_test_split    
 from sklearn.metrics import accuracy_score,classification_report
 
-credit_data = pd.read_csv("credit_data.csv")
+credit_data = pd.read_csv("credit_data.csv", sep=",")
 
 
 print (credit_data.head())
-credit_data['class'] = credit_data['class']-1
+
+# credit_data['class'] = credit_data['class']-1
+credit_data['Target'] = credit_data['Target']-1
           
       
 # Calculation of IV  metrics
 def IV_calc(data,var):
     if data[var].dtypes == "object":
-        dataf = data.groupby([var])['class'].agg(['count','sum'])
+        dataf = data.groupby([var])['Target'].agg(['count','sum'])
         dataf.columns = ["Total","bad"]    
         dataf["good"] = dataf["Total"] - dataf["bad"]
         dataf["bad_per"] = dataf["bad"]/dataf["bad"].sum()
@@ -32,7 +34,7 @@ def IV_calc(data,var):
         return dataf
     else:
         data['bin_var'] = pd.qcut(data[var].rank(method='first'),10)
-        dataf = data.groupby(['bin_var'])['class'].agg(['count','sum'])
+        dataf = data.groupby(['bin_var'])['Target'].agg(['count','sum'])
         dataf.columns = ["Total","bad"]    
         dataf["good"] = dataf["Total"] - dataf["bad"]
         dataf["bad_per"] = dataf["bad"]/dataf["bad"].sum()
@@ -41,23 +43,23 @@ def IV_calc(data,var):
         return dataf
 
 
-IV_calc(credit_data,'Status_of_existing_checking_account')
+IV_calc(credit_data,'Checking account')
 
 print ("\n\nCredit History - Information Value\n")
-print (IV_calc(credit_data,'Credit_history'))
+print (IV_calc(credit_data,'Credit history'))
 
 print ("\n\nCredit History - Duration in month\n")
-print (IV_calc(credit_data,'Duration_in_month'))
+print (IV_calc(credit_data,'Duration'))
 
 
 print ("\n\nInformation Value by descending order\n")
-discrete_columns = ['Status_of_existing_checking_account','Credit_history','Purpose','Savings_Account',
-                    'Present_Employment_since','Personal_status_and_sex','Other_debtors','Property',
-                    'Other_installment_plans','Housing','Job','Telephone','Foreign_worker']
+discrete_columns = ['Checking account','Credit history','Purpose','Savings account',
+                    'Employment since','Status & sex','Debtors & guarantors','Property',
+                    'Other installments','Housing','Job','Phone','Foreign worker']
 
-continuous_columns = ['Duration_in_month', 'Credit_amount','Installment_rate_in_percentage_of_disposable_income',
-                      'Present_residence_since', 'Age_in_years','Number_of_existing_credits_at_this_bank',
-                       'Number_of_People_being_liable_to_provide_maintenance_for']
+continuous_columns = ['Duration', 'Credit amount','Installment rate',
+                      'Residence since', 'Age','Existing credits',
+                       'Kept people']
 
 total_columns = discrete_columns + continuous_columns
 
@@ -76,54 +78,60 @@ for i in range(len(Iv_list)):
 
 
 # Retaining top 15 variables
-dummy_stseca = pd.get_dummies(credit_data['Status_of_existing_checking_account'], prefix='status_exs_accnt')
-dummy_ch = pd.get_dummies(credit_data['Credit_history'], prefix='cred_hist')
-dummy_purpose = pd.get_dummies(credit_data['Purpose'], prefix='purpose')
-dummy_savacc = pd.get_dummies(credit_data['Savings_Account'], prefix='sav_acc')
-dummy_presc = pd.get_dummies(credit_data['Present_Employment_since'], prefix='pre_emp_snc')
-dummy_perssx = pd.get_dummies(credit_data['Personal_status_and_sex'], prefix='per_stat_sx')
-dummy_othdts = pd.get_dummies(credit_data['Other_debtors'], prefix='oth_debtors')
+# dummy_stseca = pd.get_dummies(credit_data['Checking account'], prefix='status_exs_accnt')
+# dummy_ch = pd.get_dummies(credit_data['Credit history'], prefix='cred_hist')
+# dummy_purpose = pd.get_dummies(credit_data['Purpose'], prefix='purpose')
+# dummy_savacc = pd.get_dummies(credit_data['Savings account'], prefix='sav_acc')
+# dummy_presc = pd.get_dummies(credit_data['Employment since'], prefix='pre_emp_snc')
+# dummy_perssx = pd.get_dummies(credit_data['Status & sex'], prefix='per_stat_sx')
+# dummy_othdts = pd.get_dummies(credit_data['Debtors & guarantors'], prefix='oth_debtors')
 
 
-dummy_property = pd.get_dummies(credit_data['Property'], prefix='property')
-dummy_othinstpln = pd.get_dummies(credit_data['Other_installment_plans'], prefix='oth_inst_pln')
-dummy_forgnwrkr = pd.get_dummies(credit_data['Foreign_worker'], prefix='forgn_wrkr')
+# dummy_property = pd.get_dummies(credit_data['Property'], prefix='property')
+# dummy_othinstpln = pd.get_dummies(credit_data['Other installments'], prefix='oth_inst_pln')
+# dummy_forgnwrkr = pd.get_dummies(credit_data['Foreign worker'], prefix='forgn_wrkr')
+
+
 
 #dummy_housing = pd.get_dummies(credit_data['Housing'], prefix='housing')
 #dummy_job = pd.get_dummies(credit_data['Job'], prefix='job')
 #dummy_telephn = pd.get_dummies(credit_data['Telephone'], prefix='telephn')
 
 
-continuous_columns = ['Duration_in_month', 'Credit_amount','Installment_rate_in_percentage_of_disposable_income',
-                       'Age_in_years','Number_of_existing_credits_at_this_bank' ]
+continuous_columns = ['Duration', 'Credit amount','Installment rate',
+                       'Age','Kept people' ]
 
 
 credit_continuous = credit_data[continuous_columns]
-credit_data_new = pd.concat([dummy_stseca,dummy_ch,dummy_purpose,dummy_savacc,dummy_presc,dummy_perssx,
-                             dummy_property,dummy_othinstpln,dummy_othdts,
-                             dummy_forgnwrkr,credit_continuous,credit_data['class']],axis=1)
+credit_data_new = pd.concat([credit_continuous,credit_data['Target']],axis=1)
+# credit_data_new = pd.concat([dummy_stseca,dummy_ch,dummy_purpose,dummy_savacc,dummy_presc,dummy_perssx,
+#                              dummy_property,dummy_othinstpln,dummy_othdts,
+#                              dummy_forgnwrkr,credit_continuous,credit_data['Target']],axis=1)
 
-x_train,x_test,y_train,y_test = train_test_split(credit_data_new.drop(['class'],axis=1),credit_data_new['class'],train_size = 0.7,random_state=42)
+
+x_train,x_test,y_train,y_test = train_test_split(credit_data_new.drop(['Target'],axis=1),credit_data_new['Target'],train_size = 0.7,random_state=42)
 
 y_train = pd.DataFrame(y_train)
 y_test = pd.DataFrame(y_test)
 
 
 # Logistic Regression
-remove_cols_extra_dummy = ['status_exs_accnt_A11','cred_hist_A30','purpose_A40','sav_acc_A61','pre_emp_snc_A71',
-               'per_stat_sx_A91','oth_debtors_A101','property_A121','oth_inst_pln_A141','forgn_wrkr_A201']
+remove_cols_extra_dummy = []
+# remove_cols_extra_dummy = ['status_exs_accnt_A11','cred_hist_A30','purpose_A40','sav_acc_A61','pre_emp_snc_A71',
+#                'per_stat_sx_A91','oth_debtors_A101','property_A121','oth_inst_pln_A141','forgn_wrkr_A201']
 
 #'housing_A151','job_A171','telephn_A191',
 
 
 
 
-remove_cols_insig = ['purpose_A46','purpose_A45','purpose_A44','sav_acc_A63','oth_inst_pln_A143',
-                     'property_A123','status_exs_accnt_A12','pre_emp_snc_A72','pre_emp_snc_A75',
-                     'pre_emp_snc_A73','cred_hist_A32','cred_hist_A33','purpose_A410','pre_emp_snc_A74',
-                     'purpose_A49','purpose_A48','property_A122','per_stat_sx_A92','forgn_wrkr_A202',
-                     'per_stat_sx_A94','purpose_A42','oth_debtors_A102','Age_in_years','sav_acc_A64',
-                     'sav_acc_A62','sav_acc_A65','oth_debtors_A103']
+remove_cols_insig = ['Age']
+# remove_cols_insig = ['purpose_A46','purpose_A45','purpose_A44','sav_acc_A63','oth_inst_pln_A143',
+#                      'property_A123','status_exs_accnt_A12','pre_emp_snc_A72','pre_emp_snc_A75',
+#                      'pre_emp_snc_A73','cred_hist_A32','cred_hist_A33','purpose_A410','pre_emp_snc_A74',
+#                      'purpose_A49','purpose_A48','property_A122','per_stat_sx_A92','forgn_wrkr_A202',
+#                      'per_stat_sx_A94','purpose_A42','oth_debtors_A102','Age','sav_acc_A64',
+#                      'sav_acc_A62','sav_acc_A65','oth_debtors_A103']
 
 remove_cols = list(set(remove_cols_extra_dummy+remove_cols_insig))
 
@@ -151,8 +159,8 @@ y_pred.columns = ["probs"]
 
 both = pd.concat([y_train,y_pred],axis=1)
 
-zeros = both[['class','probs']][both['class']==0]
-ones = both[['class','probs']][both['class']==1]
+zeros = both[['Target','probs']][both['Target']==0]
+ones = both[['Target','probs']][both['Target']==1]
 
 def df_crossjoin(df1, df2, **kwargs):
     df1['_tmpkey'] = 1
@@ -184,7 +192,7 @@ print ("\nC-statistic:",round(c_statistic,4))
 import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.metrics import auc
-fpr, tpr, thresholds = metrics.roc_curve(both['class'],both['probs'], pos_label=1)
+fpr, tpr, thresholds = metrics.roc_curve(both['Target'],both['probs'], pos_label=1)
 
 roc_auc = auc(fpr,tpr)
 plt.figure()
@@ -231,22 +239,22 @@ from sklearn.ensemble import RandomForestClassifier
 credit_data = pd.read_csv("credit_data.csv")
 credit_data['class'] = credit_data['class']-1
                     
-dummy_stseca = pd.get_dummies(credit_data['Status_of_existing_checking_account'], prefix='status_exs_accnt')
-dummy_ch = pd.get_dummies(credit_data['Credit_history'], prefix='cred_hist')
+dummy_stseca = pd.get_dummies(credit_data['Checking account'], prefix='status_exs_accnt')
+dummy_ch = pd.get_dummies(credit_data['Credit history'], prefix='cred_hist')
 dummy_purpose = pd.get_dummies(credit_data['Purpose'], prefix='purpose')
-dummy_savacc = pd.get_dummies(credit_data['Savings_Account'], prefix='sav_acc')
-dummy_presc = pd.get_dummies(credit_data['Present_Employment_since'], prefix='pre_emp_snc')
-dummy_perssx = pd.get_dummies(credit_data['Personal_status_and_sex'], prefix='per_stat_sx')
+dummy_savacc = pd.get_dummies(credit_data['Savings Account'], prefix='sav_acc')
+dummy_presc = pd.get_dummies(credit_data['Employment since'], prefix='pre_emp_snc')
+dummy_perssx = pd.get_dummies(credit_data['Status & sex'], prefix='per_stat_sx')
 dummy_othdts = pd.get_dummies(credit_data['Other_debtors'], prefix='oth_debtors')
 dummy_property = pd.get_dummies(credit_data['Property'], prefix='property')
-dummy_othinstpln = pd.get_dummies(credit_data['Other_installment_plans'], prefix='oth_inst_pln')
+dummy_othinstpln = pd.get_dummies(credit_data['Other installments'], prefix='oth_inst_pln')
 dummy_housing = pd.get_dummies(credit_data['Housing'], prefix='housing')
 dummy_job = pd.get_dummies(credit_data['Job'], prefix='job')
-dummy_telephn = pd.get_dummies(credit_data['Telephone'], prefix='telephn')
-dummy_forgnwrkr = pd.get_dummies(credit_data['Foreign_worker'], prefix='forgn_wrkr')
+dummy_telephn = pd.get_dummies(credit_data['Phone'], prefix='telephn')
+dummy_forgnwrkr = pd.get_dummies(credit_data['Foreign worker'], prefix='forgn_wrkr')
 
-continuous_columns = ['Duration_in_month', 'Credit_amount','Installment_rate_in_percentage_of_disposable_income',
-                      'Present_residence_since', 'Age_in_years','Number_of_existing_credits_at_this_bank',
+continuous_columns = ['Duration', 'Credit amount','Installment rate',
+                      'Residence since', 'Age','Number_of_existing_credits_at_this_bank',
                        'Number_of_People_being_liable_to_provide_maintenance_for']
 
 credit_continuous = credit_data[continuous_columns]

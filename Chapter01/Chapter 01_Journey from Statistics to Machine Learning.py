@@ -1,11 +1,10 @@
-
-
 import os
 
+from tqdm import tqdm
 
 """ First change the following directory link to where all input files do exist """
 
-os.chdir("D:\Book writing\Codes\Chapter 1")
+os.chdir("Data")
 
 
 
@@ -22,15 +21,15 @@ dt_mean = np.mean(data) ; print ("Mean :",round(dt_mean,2))
 dt_median = np.median(data) ; print ("Median :",dt_median)        
 
 # Calculate Mode                     
-dt_mode =  stats.mode(data); print ("Mode :",dt_mode[0][0])                   
+dt_mode =  stats.mode(data); print ("Mode :",dt_mode[0])                   
 
 
 # Deviance calculations
 
 import numpy as np
-from statistics import variance,stdev
+from statistics import variance, stdev
 
-game_points = np.array([35,56,43,59,63,79,35,41,64,43,93,60,77,24,82])
+game_points = np.array([35,56,43,59,63,79,35,41,64,43,93,60,77,24,82], dtype=np.float32)
 
 # Calculate Variance
 dt_var = variance(game_points) ; print ("Sample variance:", round(dt_var,2))
@@ -88,7 +87,7 @@ survey = pd.read_csv("survey.csv")
 # Tabulating 2 variables with row & column variables respectively
 survey_tab = pd.crosstab(survey.Smoke, survey.Exer, margins = True)
 # Creating observed table for analysis
-observed = survey_tab.ix[0:4,0:3] 
+observed = survey_tab.iloc[0:4,0:3] 
 
 contg = stats.chi2_contingency(observed= observed)
 p_value = round(contg[1],3)
@@ -147,6 +146,7 @@ def gradient_descent(x, y,learn_rate, conv_threshold,batch_size,max_iter):
 
     MSE = (sum([(t0 + t1*x[i] - y[i])**2 for i in range(m)])/ m)    
 
+    progreso = tqdm(range(max_iter))  
     while not converged:        
         grad0 = 1.0/m * sum([(t0 + t1*x[i] - y[i]) for i in range(m)]) 
         grad1 = 1.0/m * sum([(t0 + t1*x[i] - y[i])*x[i] for i in range(m)])
@@ -165,6 +165,7 @@ def gradient_descent(x, y,learn_rate, conv_threshold,batch_size,max_iter):
     
         MSE = MSE_New   
         iter += 1 
+        progreso.update(1)
     
         if iter == max_iter:
             print ('Max interactions reached')
